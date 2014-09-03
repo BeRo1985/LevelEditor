@@ -1,5 +1,6 @@
 //Copyright © 2014 Sony Computer Entertainment America LLC. See License.txt.
 
+#include <d3d11.h>
 #include <d3dx11.h>
 #include <DxErr.h>
 #include <D3Dcompiler.h>
@@ -22,9 +23,9 @@ namespace LvEdEngine
     // shaderName is the embedeed resource name
     // the caller have to free the returned pointer.
     static void LoadEmbeddedShader(const wchar_t* shaderName, const void **ppData, UINT* pBytes);
-   
-    // custom include handler 
-    // helps shader compiler to  resolve #include as embedded resources 
+
+    // custom include handler
+    // helps shader compiler to  resolve #include as embedded resources
     class IncludeHandler : public ID3DInclude, public NonCopyable
     {
         public:
@@ -34,19 +35,19 @@ namespace LvEdEngine
             LPCVOID /*pParentData*/,
             LPCVOID *ppData,
             UINT *pBytes)
-        {                       
+        {
             WCHAR wfile[MAX_PATH];
             MultiByteToWideChar(0, 0, pFileName, MAX_PATH, wfile, MAX_PATH );
-            LoadEmbeddedShader(wfile,ppData,pBytes);                                 
+            LoadEmbeddedShader(wfile,ppData,pBytes);
             return (*pBytes > 0)? S_OK : E_INVALIDARG;
 
         }
         STDMETHOD(Close)( LPCVOID pData)
         {
             if(pData)
-            {                
+            {
                 free((void*)pData);
-            }          
+            }
             return S_OK;
         }
     };
@@ -67,10 +68,10 @@ void ConvertColor( int color , float3* out)
 
 //-------------------------------------------------------------------------------------------------
 uint32_t GetSizeInBytes(VertexFormatEnum vf)
-{   
+{
     uint32_t size = 0;
     switch(vf)
-    {    
+    {
     case VertexFormat::VF_P:
         size = sizeof(float3);
         break;
@@ -81,27 +82,27 @@ uint32_t GetSizeInBytes(VertexFormatEnum vf)
 
     case VertexFormat::VF_PN:
         size = sizeof(float3) + sizeof(float3);
-        break;  
+        break;
 
     case VertexFormat::VF_PT:
 		size = sizeof(float3) + sizeof(float2);
-        break; 
+        break;
 
     case VertexFormat::VF_PTC:
 		size = sizeof(float3) + sizeof(float2) + sizeof(float4);
-        break; 
+        break;
 
     case VertexFormat::VF_PNT:
         size = sizeof(float3) + sizeof(float3) + sizeof(float2);
-        break;    
+        break;
 
     case VertexFormat::VF_PNTT:  // pos, norm, tex0, tangent
         size = sizeof(float3) + sizeof(float3) + sizeof(float2) + sizeof(float3);
-        break;  
+        break;
 
     case VertexFormat::VF_T:
         size = sizeof(float2);
-        break;  
+        break;
 
      default: assert(0); break;
     }
@@ -116,8 +117,8 @@ uint32_t GetVerticesPerPrimitive(PrimitiveTypeEnum pt)
     uint32_t vertexCount = 0;
     switch(pt)
     {
-    default: 
-        assert(0); 
+    default:
+        assert(0);
         break;
     case PrimitiveType::LineList:
         vertexCount = 2;
@@ -142,14 +143,14 @@ ID3DBlob* CompileShaderFromResource(LPCWSTR resourceName, LPCSTR szEntryPoint, L
 {
     wchar_t ResName[MAX_PATH];
     size_t len = wcslen(resourceName);
-    
+
     for(unsigned int c =0; c < len; c++) { ResName[c] = towupper(resourceName[c]); }
     ResName[len] = L'\0';
 
-    HMODULE handle = GetDllModuleHandle();      
+    HMODULE handle = GetDllModuleHandle();
     HRSRC resInfo =  FindResource(handle, ResName,L"SHADER");
     if(resInfo == NULL)
-    {       
+    {
         Logger::Log(OutputMessageType::Error, L"Could not find specified shader in resource.rc: %s\n", resourceName);
         return NULL;
     }
@@ -164,11 +165,11 @@ ID3DBlob* CompileShaderFromResource(LPCWSTR resourceName, LPCSTR szEntryPoint, L
     const char* data = static_cast<const char*>(LockResource(hRes));
     char* code = new char[resLen+1];
     CopyMemory(code,data,resLen);
-    
+
     code[resLen] = 0;
 
 
-    char shaderName[MAX_PATH];    
+    char shaderName[MAX_PATH];
     WideCharToMultiByte(
                        CP_ACP,       //__in UINT     CodePage,
                        0,            //__in DWORD    dwFlags,
@@ -178,7 +179,7 @@ ID3DBlob* CompileShaderFromResource(LPCWSTR resourceName, LPCSTR szEntryPoint, L
                         MAX_PATH,    //__in int      cbMultiByte,
                         NULL,        //__in_opt LPCSTR   lpDefaultChar,
                         NULL         //__out_opt LPBOOL  lpUsedDefaultChar
-                        );        
+                        );
     ID3DBlob* blob = CompileShaderFromString(shaderName,code, szEntryPoint, szShaderModel, shaderMacros);
     delete[] code;
     return blob;
@@ -190,14 +191,14 @@ ID3DBlob* CompileShaderFromString(const char * shaderName, const char* szCode, L
 	HRESULT hr = S_OK;
 
 	 DWORD32 dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined( DEBUG ) || defined( _DEBUG )  
+#if defined( DEBUG ) || defined( _DEBUG )
     dwShaderFlags |= D3DCOMPILE_DEBUG;
 #else
-     dwShaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;     
+     dwShaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
 #endif
 
 
-    
+
     ID3DBlob* pErrorBlob = NULL;
     ID3DBlob* pCompiledCode = NULL;
     IncludeHandler incHandler;
@@ -215,7 +216,7 @@ ID3DBlob* CompileShaderFromString(const char * shaderName, const char* szCode, L
 				&pErrorBlob//  __out  ID3DBlob *ppErrorMsgs
 				);
 
-	
+
     if( FAILED(hr) )
     {
         if( pErrorBlob != NULL )
@@ -293,7 +294,7 @@ IndexBuffer* CreateIndexBuffer(ID3D11Device* device, uint32_t* buffer, uint32_t 
 	SecureZeroMemory( &bufData, sizeof(bufData) );
     bufData.pSysMem = buffer;
 
-    ID3D11Buffer* gpuBuffer = NULL; 
+    ID3D11Buffer* gpuBuffer = NULL;
     hr = device->CreateBuffer( &bufDcr, &bufData, &gpuBuffer );
     if (Logger::IsFailureLog(hr, L"CreateBuffer"))
     {
@@ -331,12 +332,12 @@ VertexBuffer* CreateVertexBuffer(ID3D11Device* device, VertexFormatEnum vf, void
     bufData.pSysMem = buffer;
     D3D11_SUBRESOURCE_DATA* pbufData = (buffer)? &bufData : NULL;
 
-    ID3D11Buffer* gpuBuffer = NULL;     
+    ID3D11Buffer* gpuBuffer = NULL;
     hr = device->CreateBuffer( &bufDcr, pbufData, &gpuBuffer );
-	
+
     if (Logger::IsFailureLog(hr, L"CreateBuffer"))
 	{
-		return 0;	 
+		return 0;
 	}
     VertexBuffer* vb = new VertexBuffer(gpuBuffer, vertexCount, vf);
     return vb;
@@ -345,19 +346,19 @@ VertexBuffer* CreateVertexBuffer(ID3D11Device* device, VertexFormatEnum vf, void
 //-------------------------------------------------------------------------------------------------
 ID3D11Buffer* CreateConstantBuffer(ID3D11Device* device, uint32_t sizeInBytes)
 {
-    HRESULT hr = S_OK;    
+    HRESULT hr = S_OK;
     ID3D11Buffer* buffer = NULL;
     D3D11_BUFFER_DESC desc;
     SecureZeroMemory( &desc, sizeof(desc));
 	desc.Usage = D3D11_USAGE_DYNAMIC;
 	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	desc.MiscFlags = 0;  
+	desc.MiscFlags = 0;
 	desc.ByteWidth = sizeInBytes;
-	desc.StructureByteStride = 0;	
+	desc.StructureByteStride = 0;
     hr = device->CreateBuffer(&desc, 0, &buffer );
-    LvEdEngine::Logger::IsFailureLog(hr,L"Failed to create constant buffer");	
-    return buffer;    
+    LvEdEngine::Logger::IsFailureLog(hr,L"Failed to create constant buffer");
+    return buffer;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -381,7 +382,7 @@ bool UpdateIndexBuffer(ID3D11DeviceContext* context, IndexBuffer* buffer, uint32
 }
 
 bool UpdateVertexBuffer(ID3D11DeviceContext* context, VertexBuffer* buffer, void* data, uint32_t count)
-{    
+{
     assert(count <= buffer->GetCount());
     HRESULT hr;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -437,7 +438,7 @@ ID3D11InputLayout* CreateInputLayout(ID3D11Device* device, ID3DBlob* shaderBlob,
     D3D11_INPUT_ELEMENT_DESC layout[10];
     uint32_t numelements = 0;
     switch(vf)
-    {    
+    {
     case VertexFormat::VF_P:
         SetLayout(&layout[0], "POSITION",  0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0);
         numelements = 1;
@@ -475,7 +476,7 @@ ID3D11InputLayout* CreateInputLayout(ID3D11Device* device, ID3DBlob* shaderBlob,
         SetLayout(&layout[2], "TEXCOORD",  0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0);
         SetLayout(&layout[3], "TANGENT",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0);
         numelements = 4;
-        break;   
+        break;
 
     default:
         assert(0);
@@ -514,7 +515,7 @@ ID3D11RasterizerState* CreateRasterState(ID3D11Device* device, FillModeEnum fill
          rsDcr.DepthBias = -1;
          rsDcr.DepthBiasClamp = -0.000005f;
     }
-		
+
 	device->CreateRasterizerState(&rsDcr,  &rasterState);
     Logger::IsFailureLog(hr, L"CreateRasterizerState");
     return rasterState;
@@ -526,7 +527,7 @@ ID3D11Texture2D * CreateDxTexture2D(ID3D11Device* device, uint32_t* buff, int w,
 {
     assert(device);
     assert(buff);
-    ID3D11Texture2D *tex = NULL;       
+    ID3D11Texture2D *tex = NULL;
     D3D11_TEXTURE2D_DESC tdesc;
     tdesc.Width = w;
     tdesc.Height = h;
@@ -553,13 +554,13 @@ ID3D11Texture2D * CreateDxTexture2D(ID3D11Device* device, uint32_t* buff, int w,
     uint32_t slicePitch = w * 4 * h;
 
     for(int index = 0; index <numSubRC; index++)
-    {        
+    {
         subData[index].pSysMem = ptr;
         subData[index].SysMemPitch = rowPitch;
         subData[index].SysMemSlicePitch = slicePitch;
         ptr += slicePitch;
     }
-    
+
     HRESULT hr = device->CreateTexture2D(&tdesc,subData,&tex);
     delete[] subData;
     //device->createtex
@@ -580,7 +581,7 @@ ID3D11ShaderResourceView * CreateTextureView(ID3D11Device* device, ID3D11Texture
         tex->GetType(&type);
         tex->GetDesc(&desc);
         bool isCubeMap =  (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
-        
+
         D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
         memset( &SRVDesc, 0, sizeof( SRVDesc ) );
         SRVDesc.Format = desc.Format;
@@ -591,7 +592,7 @@ ID3D11ShaderResourceView * CreateTextureView(ID3D11Device* device, ID3D11Texture
             if (desc.ArraySize > 6)
             {
                 SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-                SRVDesc.TextureCubeArray.MipLevels = desc.MipLevels;                
+                SRVDesc.TextureCubeArray.MipLevels = desc.MipLevels;
                 SRVDesc.TextureCubeArray.NumCubes = ( desc.ArraySize / 6 );
             }
             else
@@ -653,7 +654,7 @@ static void LoadEmbeddedShader(const wchar_t* shaderName, const void **ppData, U
     for(unsigned int c =0; c < len; c++) { ResName[c] = towupper(shaderName[c]); }
     ResName[len] = L'\0';
 
-    HMODULE handle = GetDllModuleHandle();      
+    HMODULE handle = GetDllModuleHandle();
     HRSRC resInfo =  FindResource(handle, ResName,L"SHADER");
     if(resInfo == NULL)
     {
@@ -674,7 +675,7 @@ static void LoadEmbeddedShader(const wchar_t* shaderName, const void **ppData, U
     char* buffer = (char*)malloc(resLen+1);
     ::CopyMemory(buffer,data,resLen);
     buffer[resLen] = '\0';
-    *ppData = buffer;        
+    *ppData = buffer;
 }
-    
+
 }; // namespace

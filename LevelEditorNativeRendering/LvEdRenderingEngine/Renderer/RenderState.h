@@ -1,8 +1,8 @@
 //Copyright © 2014 Sony Computer Entertainment America LLC. See License.txt.
 
 #pragma once
-#include <D3DX11.h>
 #include <D3D11.h>
+#include <D3DX11.h>
 #include "../VectorMath/V3dMath.h"
 #include "../VectorMath/CollisionPrimitives.h"
 #include "../Core/Object.h"
@@ -32,7 +32,7 @@ namespace LvEdEngine
         void SetSelectionColor(const float4& color){ m_selectionColor= color;}
         const float4 GetSelectionColor() const {return m_selectionColor;}
 
-    private:                
+    private:
         GlobalRenderFlagsEnum m_renderflags;
         float4 m_wirecolor;
         float4 m_selectionColor;
@@ -44,7 +44,7 @@ namespace LvEdEngine
     public:
         RenderStateCache(ID3D11Device* device);
         ~RenderStateCache();
-        
+
         virtual const char* ClassName() const {return StaticClassName();}
         static const char* StaticClassName(){return "RenderStateCache";}
 
@@ -60,9 +60,9 @@ namespace LvEdEngine
 
 
 
-    private:        
+    private:
         std::map<uint32_t,ID3D11RasterizerState*> RasterStates;
-        std::map<uint32_t,ID3D11DepthStencilState*> DepthStencilStates;        
+        std::map<uint32_t,ID3D11DepthStencilState*> DepthStencilStates;
         std::map<uint32_t,ID3D11BlendState*> BlendStates;
         ID3D11BlendState*  m_alphaToCoverage;
         D3D11_RASTERIZER_DESC     m_defRsDcr;
@@ -73,5 +73,5 @@ namespace LvEdEngine
     };
 
     class ShadowMaps;
-         
+
 }; // namespace

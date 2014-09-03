@@ -1,6 +1,7 @@
 //Copyright © 2014 Sony Computer Entertainment America LLC. See License.txt.
 
 #pragma once
+#include <d3d11.h>
 #include <vector>
 #include "../Core/WinHeaders.h"
 #include <D3DX11.h>
@@ -39,7 +40,7 @@ namespace LvEdEngine
     // BUFFERS
     ID3D11Buffer* CreateConstantBuffer(ID3D11Device* device, uint32_t sizeInBytes);
     IndexBuffer* CreateIndexBuffer(ID3D11Device* device, uint32_t* buffer, uint32_t indexCount, D3D11_USAGE usage = D3D11_USAGE_DEFAULT);
-    
+
     VertexBuffer* CreateVertexBuffer(ID3D11Device* device, VertexFormatEnum vf, void* buffer, uint32_t vertexCount, D3D11_USAGE usage = D3D11_USAGE_DEFAULT);
     bool UpdateIndexBuffer(ID3D11DeviceContext* context, IndexBuffer* buffer, uint32_t* data, uint32_t count);
     bool UpdateVertexBuffer(ID3D11DeviceContext* context, VertexBuffer* buffer, VertexFormatEnum vf, void* data, uint32_t count);
@@ -50,15 +51,15 @@ namespace LvEdEngine
     ID3D11RasterizerState* CreateRasterState(ID3D11Device* device, FillModeEnum fillMode);
 
     // TEXTURES
-    
+
     ID3D11Texture2D * CreateDxTexture2D(ID3D11Device* device, uint32_t* buff, int w, int h, bool cubemap = false );
     ID3D11ShaderResourceView* CreateTextureView(ID3D11Device* device, ID3D11Texture2D *tex);
     ID3D11SamplerState* CreateSamplerState(ID3D11Device* device);
-       
 
-     // Use DXUT_SetDebugName() to attach names to D3D objects for use by 
+
+     // Use DXUT_SetDebugName() to attach names to D3D objects for use by
     // SDKDebugLayer, PIX's object table, etc.
-    #if defined(PROFILE) || defined(DEBUG) || defined(_DEBUG)  
+    #if defined(PROFILE) || defined(DEBUG) || defined(_DEBUG)
     inline void Render_SetDebugName( ID3D11DeviceChild* pObj, const CHAR* pstrName )
     {
         if ( pObj )

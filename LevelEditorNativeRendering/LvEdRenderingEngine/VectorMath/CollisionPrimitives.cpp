@@ -2,6 +2,7 @@
 
 #include "CollisionPrimitives.h"
 #include <float.h>
+#include <algorithm>
 
 namespace LvEdEngine
 {
@@ -15,8 +16,8 @@ namespace LvEdEngine
     bool IsConvexQuad(const float3& A, const float3& B, const float3& C, const float3& D)
     {
         float3 AC = C - A;
-        float3 AB = B - A;        
-        float3 AD = D - A;        
+        float3 AB = B - A;
+        float3 AD = D - A;
         if( dot( cross(AB,AC), cross(AD,AC)) >= 0) return false;
 
         float3 BD = D - B;
@@ -109,7 +110,7 @@ namespace LvEdEngine
             return false;
         }
 
-        
+
         // find intersection rect.
         out.x1 = std::max(r1.x1, r2.x1);
         out.x2 = std::min(r1.x2, r2.x2);
@@ -132,7 +133,7 @@ namespace LvEdEngine
     }
 
     const float3& AABB::Max() const
-    {		 
+    {
         return m_max;
     }
 
@@ -150,9 +151,9 @@ namespace LvEdEngine
         m_max = maximize( m_max, point);
     }
 
-    
+
     void AABB::Transform(const Matrix &xform)
-    {                  
+    {
         float3 newMin = float3(xform.M41,xform.M42,xform.M43);
         float3 newMax = newMin;
 
@@ -177,12 +178,12 @@ namespace LvEdEngine
             }
         }
 
-        m_min = newMin;         
-        m_max = newMax;         
+        m_min = newMin;
+        m_max = newMax;
     }
 
     bool AABB::Contain(const float3& pt) const
-    {        
+    {
         if(pt.x > m_max.x) return false;
         if(pt.x < m_min.x) return false;
 
@@ -221,7 +222,7 @@ namespace LvEdEngine
 
 
     //======================= Frustum ========================
-  
+
     // corners must be specified as follow
     // front: botton-left  bottom-right, top-right, top-left.
     // back:  botton-left  bottom-right, top-right, top-left.
@@ -233,10 +234,10 @@ namespace LvEdEngine
         }
 
         m_planes[Near] = Plane(corners[0],corners[2],corners[1]);
-        m_planes[Far]  = Plane(corners[4],corners[5],corners[6]);        
-        m_planes[Top] = Plane(corners[2],corners[7],corners[6]);                
+        m_planes[Far]  = Plane(corners[4],corners[5],corners[6]);
+        m_planes[Top] = Plane(corners[2],corners[7],corners[6]);
         m_planes[Bottom] = Plane(corners[1],corners[5],corners[4]);
-        m_planes[Right] = Plane(corners[1],corners[6],corners[5]);                
+        m_planes[Right] = Plane(corners[1],corners[6],corners[5]);
         m_planes[Left] = Plane(corners[0],corners[4],corners[7]);
     }
 
@@ -271,7 +272,7 @@ namespace LvEdEngine
         float4 col2(VP(0,2), VP(1,2), VP(2,2), VP(3,2));
         float4 col3(VP(0,3), VP(1,3), VP(2,3), VP(3,3));
 
-        
+
         // Planes face inward.
         m_planes[Near]   = Plane(col2);        // near
         m_planes[Far]    = Plane(col3 - col2); // far
@@ -318,7 +319,7 @@ namespace LvEdEngine
         p.y = A.y + v*(B.y - A.y) + w*(C.y - A.y);
         p.z = A.z + v*(B.z - A.z) + w*(C.z - A.z);
 
-        return p;         
+        return p;
     }
 
     // compute barycentric coord for point p
@@ -326,7 +327,7 @@ namespace LvEdEngine
     // output bar.x = u, bary.y = v,  bary.z = w;
     // P = uA + vB + wC where u + v + w = 1; u = 1-v-w;
     // p = (1-v-w)A + vB + wC
-    // p = A + v(B-A) + w(C-A) ==> v(B-A) + w(C-A) = P - A     
+    // p = A + v(B-A) + w(C-A) ==> v(B-A) + w(C-A) = P - A
     //  K0 = B-A,  K1 = C - A,  K2 = P - A
     //  vK0 + wK1 = K2
     // Dot is by K0 and K1 to get two equations
@@ -346,8 +347,8 @@ namespace LvEdEngine
     float d20 = dot(K2,K0);
     float d21 = dot(K2,K1);
 
-    // CoEff A = | d00   d01 | 
-    //           | d01   d11 | 
+    // CoEff A = | d00   d01 |
+    //           | d01   d11 |
     // Constant B = | d20 |
     //              | d21 |
     // Solution Vector X = | v |
@@ -355,11 +356,11 @@ namespace LvEdEngine
     // AX = B  ==>  X = inv(A) * B
     // cramer's rule
     // det of coefficient
-    // 
+    //
     //      | d20  d01 |
     //      | d21  d11 |
     // u =  -------------
-    //      det(A)   
+    //      det(A)
     //
     //     | d00  d20 |
     //     | d01  d21 |
@@ -370,7 +371,7 @@ namespace LvEdEngine
 
 
     float detA = (d00 * d11) - (d01 * d01);
-        
+
     bary.y = (d20 * d11 - d01 * d21) / detA;
     bary.z = (d00 * d21 - d20 * d01) / detA;
     bary.x = 1 - bary.y - bary.z; // u = 1 - v - w
@@ -396,7 +397,7 @@ namespace LvEdEngine
         //bary.z = dot(B,-M)/det;
         bary.z = 1-bary.x - bary.y;
     }
-     
+
 
     //================= closest point =====================================
 
@@ -419,7 +420,7 @@ namespace LvEdEngine
         // project point p on to plane
         // R(t) = p - t·N //
         // N·X + D = 0;  // plance equation
-        // N · (p-tN)+D = 0; 
+        // N · (p-tN)+D = 0;
         // N·P - tN·N + D = 0; ==> t = N·P - D;
         // R(t) = p - (N·P - D)·N;
 
@@ -447,11 +448,11 @@ namespace LvEdEngine
         float tmin = -FLT_MAX;
         float tmax = FLT_MAX;
         float3 minNorm, maxNorm;
-        
+
         // check vs. all three 'slabs' of the aabb
         for(int i = 0; i < 3; ++i)
         {
-            if(abs(d[i]) < Epsilon) 
+            if(abs(d[i]) < Epsilon)
             {   // ray is parallel to slab, no hit if origin not within slab
                 if(p[i] < a.Min()[i] || p[i] > a.Max()[i] )
                 {
@@ -468,13 +469,13 @@ namespace LvEdEngine
                 tmax = minimize(tmax, maximize(t1, t2));
 
                 // exit with no collision as soon as slab intersection becomes empty
-                if(tmin > tmax) 
+                if(tmin > tmax)
                 {
                     return false;
                 }
             }
         }
-        
+
         if(tmax < 0.f)
         {
             // entire bounding box is behind us
@@ -500,20 +501,20 @@ namespace LvEdEngine
 
 
 
-    // ray triangle intersection 
+    // ray triangle intersection
     // approaches:
     // 1- compute ray plane intersection
     //    test if the point is inside all edges
-    //    or compute barycentric weights for the point.     
+    //    or compute barycentric weights for the point.
     float IntersectionRayTriangle1(const Ray &r, const Triangle &t)
     {
         Plane p(t.A,t.B,t.C);
-        
+
         float dist = IntersectionRayPlane(r, p);
         if(dist < 0) return dist;
         float3 Q = r.pos + dist * r.direction;
-        
-        
+
+
         float3 ab = t.B - t.A;
         float3 bc = t.C - t.B;
         float3 ca = t.A - t.C;
@@ -527,19 +528,19 @@ namespace LvEdEngine
         //t.Barycentric1(Q,bary);
         //if(bary.x >= 0 && bary.y >= 0 && (bary.x + bary.y) <= 1)
         //    return dist;
-        //else 
+        //else
         //    return -1;
     }
 
     // see Fast RayTriangle Intersection.pdf in C:\Users\Alan\Projects\EduRes
     bool IntersectionRayTriangle(const Ray &r, const Triangle &t, bool backfaceCull,
                                 float* out_tmin, float3* out_pos, float3* out_nor)
-    {         
+    {
         float3 E1 = t.B - t.A;
-        float3 E2 = t.C - t.A;        
+        float3 E2 = t.C - t.A;
         float3 P =   cross(r.direction ,E2);
         float det = dot(P, E1);
-        
+
         // det is the same as the dot(r.direction, cross(E1, E2))
         // when det is < 0, r.direction is opposite direction then winding order
         // So if backfaceCull'ing and det < 0, then return false
@@ -552,7 +553,7 @@ namespace LvEdEngine
         if (u < 0.f || u > 1.f) return false;
         float v = dot(Q, r.direction) / det;
         if (v < 0.f || (u+v) > 1.f) return false;
-         
+
         // if need to compute v and u.
         //u /= det;
         //v /= det;
@@ -567,12 +568,12 @@ namespace LvEdEngine
         else
         {
             return false;
-        }                 
+        }
     }
 
     float IntersectionRayPlane(const Ray &r, const Plane &p)
     {
-        float nd = dot(p.normal, r.direction); 
+        float nd = dot(p.normal, r.direction);
         if( abs(nd) < Epsilon) return -1; // no intersection.
         float t = (-p.d - dot(p.normal, r.pos))/nd;
         return t;
@@ -581,8 +582,8 @@ namespace LvEdEngine
 
     bool MeshIntersects(const Ray& ray, float3* pos, uint32_t posCount, uint32_t* indices, uint32_t indicesCount,
                         bool backfaceCull, float* out_tmin, float3* out_pos, float3* out_nor, float3* nearestVertex)
-    {        
-        if(posCount == 0) 
+    {
+        if(posCount == 0)
             return false;
 
         uint32_t LastTri = indicesCount -3;
@@ -603,10 +604,10 @@ namespace LvEdEngine
             tri.A = pos[ indices[i]];
             tri.B = pos[ indices[i+1]];
             tri.C = pos[ indices[i+2]];
-            
-            tri_hit = IntersectionRayTriangle(ray, tri, backfaceCull, &hit_dist, &hit_pos, &hit_nor);            
+
+            tri_hit = IntersectionRayTriangle(ray, tri, backfaceCull, &hit_dist, &hit_pos, &hit_nor);
             if(tri_hit)
-            {                
+            {
                 hit = true;
                 if(hit_dist < dist)
                 {
@@ -618,7 +619,7 @@ namespace LvEdEngine
                     float distA = lengthsquared(hit_pos - tri.A);
                     float distB = lengthsquared(hit_pos - tri.B);
                     float distC = lengthsquared(hit_pos - tri.C);
-                    
+
                     if(distA <= distB && distA <= distC)
                         *nearestVertex = tri.A;
                     else if( distB < distC)
@@ -628,8 +629,8 @@ namespace LvEdEngine
 
                 }
             }
-           
-        }  
+
+        }
         return hit;
     }
 
@@ -768,7 +769,7 @@ namespace LvEdEngine
         }
     }
 
-    bool DistanceRayToLineStrip(const Ray& ray, float3* pos,uint32_t posCount, const Matrix& worldXform,                 
+    bool DistanceRayToLineStrip(const Ray& ray, float3* pos,uint32_t posCount, const Matrix& worldXform,
                 float* out_distTo, float* out_distBetween, float3* out_pos, float3* out_nor, uint32_t* out_hitIndex)
     {
         uint32_t LastSeg = posCount - 1;
@@ -801,11 +802,11 @@ namespace LvEdEngine
     //-----------------------------------------------------------------------------
     // Plane vs AABB test.
     //
-    // Return values: 
-    //              0 = (Front) There is no intersection, and the box is in 
-    //                   the positive half-space of the Plane. 
-    //                  
-    //              1 = (Back) There is no intersection, and the box is in 
+    // Return values:
+    //              0 = (Front) There is no intersection, and the box is in
+    //                   the positive half-space of the Plane.
+    //
+    //              1 = (Back) There is no intersection, and the box is in
     //                  the negative half-space of the Plane.
     //              2 = (Intersecting) the box intersects the plane.
     //-----------------------------------------------------------------------------
@@ -813,8 +814,8 @@ namespace LvEdEngine
     {
         float3 c  = box.GetCenter();
         float3 r  = box.Max() - c;
-        float e = r.x * abs(plane.normal.x) 
-                + r.y * abs(plane.normal.y) 
+        float e = r.x * abs(plane.normal.x)
+                + r.y * abs(plane.normal.y)
                 + r.z * abs(plane.normal.z);
         float s = plane.Eval(c);
         if((s - e) > 0)  return 0; // front side
@@ -824,98 +825,98 @@ namespace LvEdEngine
 
 
     //-----------------------------------------------------------------------------
-    // AABB vs Frustum test.     
+    // AABB vs Frustum test.
     //
-    // Return values: 0 = no intersection, 
-    //                1 = intersection, 
-    //                2 = box is completely inside frustum    
+    // Return values: 0 = no intersection,
+    //                1 = intersection,
+    //                2 = box is completely inside frustum
     //
     //-----------------------------------------------------------------------------
     int FrustumAABBIntersect(const Frustum& frustum, const AABB& box)
     {
         float3 c  = box.GetCenter();
         float3 r  = box.Max() - c;
-        bool intersects = false;        
+        bool intersects = false;
         for(int i = 0; i < 6; ++i)
         {
             const Plane& plane = frustum[i];
             // test plane and AABB intersection.
-            float e =  r.x * abs(plane.normal.x) 
-                + r.y * abs(plane.normal.y) 
+            float e =  r.x * abs(plane.normal.x)
+                + r.y * abs(plane.normal.y)
                 + r.z * abs(plane.normal.z);
             float s = plane.Eval(c);
 
            // assert(e > 0);
             // the box is in positive half-space.
             if((s - e) > 0) continue;
-            
-            // if box is completely in negative side of the plain 
+
+            // if box is completely in negative side of the plain
             // then the box is outside frustum.
-            if( (s + e) < 0) return 0; // no intersection, early exit.            
-            intersects = true;             
-        }    
+            if( (s + e) < 0) return 0; // no intersection, early exit.
+            intersects = true;
+        }
         if(intersects) return 1;
-        return 2; // either intersects or completely inside frustum      
+        return 2; // either intersects or completely inside frustum
     }
     //-----------------------------------------------------------------------------
     // AABB vs frustum test.
     //
-    // Return values: false = no intersection, 
+    // Return values: false = no intersection,
     //                true  = either the box intersections or it is fully containt.
-    // note: this test is fast but not 100% accurate (it is good for viewfrustum culling)          
+    // note: this test is fast but not 100% accurate (it is good for viewfrustum culling)
     //-----------------------------------------------------------------------------
     bool TestFrustumAABB(const Frustum& frustum, const AABB& box)
-	{              
+	{
         float3 c  = box.GetCenter();
-        float3 r  = box.Max() - c;        
+        float3 r  = box.Max() - c;
         for(int i = 0; i < 6; ++i)
         {
             const Plane& plane = frustum[i];
             // test plane and AABB intersection.
-            float e =  r.x * abs(plane.normal.x) 
-                + r.y * abs(plane.normal.y) 
+            float e =  r.x * abs(plane.normal.x)
+                + r.y * abs(plane.normal.y)
                 + r.z * abs(plane.normal.z);
             float s = plane.Eval(c);
-            
-            // if box is completely in negative side of the plain 
+
+            // if box is completely in negative side of the plain
             // then the box is outside frustum.
-            if( (s + e) < 0)  return false; // no intersection, early exit.               
-        }            
-        return true; // either intersects or completely inside frustum         
+            if( (s + e) < 0)  return false; // no intersection, early exit.
+        }
+        return true; // either intersects or completely inside frustum
     }
 
- 
+
     //-----------------------------------------------------------------------------
     // Frustum Triangle intersection  using separating axis test.
     // note: the frustum and the triangle must be in the same space.
     //       optimization needed
     bool FrustumTriangleIntersect(const Frustum& fr, const Triangle& tri)
-    {            
-        bool allInside = true;        
+    {
+        bool allInside = true;
         for(int i = 0; i < 6; ++i)
         {
             const Plane& plane = fr[i];
             float d1 = plane.Eval(tri.A);
             float d2 = plane.Eval(tri.B);
-            float d3 = plane.Eval(tri.C); 
+            float d3 = plane.Eval(tri.C);
 
             // if all outside a single plane, then there is
             // no intersection.
-            if( d1 < 0 && d2 < 0 && d3 < 0) 
+            if( d1 < 0 && d2 < 0 && d3 < 0)
                 return false;
-            allInside = allInside && ( d1 > 0 && d2 > 0 && d3 > 0);            
+            allInside = allInside && ( d1 > 0 && d2 > 0 && d3 > 0);
         }
 
         // the tri is completely inside the frustum.
-        if( allInside ) 
-            return true; 
+        if( allInside )
+            return true;
 
         // separating axis test.
         // Triangle:  3 edges  1 face normal.
         // Frustum:   6 edges, 5 face normal.
         // for total of 24 separating axis.
         // note this test can be optimized.
-                        
+
         // tri edges
         float3 triEdges[3];
         triEdges[0] = tri.B - tri.A;
@@ -931,8 +932,8 @@ namespace LvEdEngine
         FrEdges[4] = (fr.Corner(Frustum::FarTopRight) - fr.Corner(Frustum::NearTopRight));
         FrEdges[5] = (fr.Corner(Frustum::FarTopLeft) - fr.Corner(Frustum::NearTopLeft));
 
-        int k = 0;        
-        float3 Axis[24];                
+        int k = 0;
+        float3 Axis[24];
         Axis[k++] = fr.TopPlane().normal;
         Axis[k++] = fr.BottomPlane().normal;
         Axis[k++] = fr.LeftPlane().normal;
@@ -944,15 +945,15 @@ namespace LvEdEngine
         {
             for(int fe = 0; fe < 6; fe++)
             {
-                float3 axis = cross( triEdges[te], FrEdges[fe]); 
-                Axis[k++] = normalize(axis);                
+                float3 axis = cross( triEdges[te], FrEdges[fe]);
+                Axis[k++] = normalize(axis);
             }
         }
-                
+
         for(int n = 0; n < 24; n++)
         {
             float3 axis = Axis[n];
-            if( lengthsquared(axis) < Epsilon) 
+            if( lengthsquared(axis) < Epsilon)
                 continue;
             float trid1 = dot(tri.A,axis);
             float trid2 = dot(tri.B,axis);
@@ -971,31 +972,31 @@ namespace LvEdEngine
                 frMin = std::min(frMin,fdist);
                 frMax = std::max(frMax,fdist);
             }
-           
+
             if( (trMax < frMin) || (frMax < trMin))
-            {               
-                return false;                
+            {
+                return false;
             }
         }
 
         // must be intersecting.
         return true;
-               
+
     }
 
 
-    
-    // loop over all the triagle in the mesh and use frustum triangle intersection.
-    // note: the frustum and the mesh must be in the same space.    
-    bool FrustumMeshIntersect(const Frustum& fr,
-                              float3* pos, 
-                              uint32_t posCount,
-                              uint32_t* indices, 
-                              uint32_t indicesCount)
-    {      
 
-        if(posCount == 0) return false;        
-        uint32_t LastTri = indicesCount -3;        
+    // loop over all the triagle in the mesh and use frustum triangle intersection.
+    // note: the frustum and the mesh must be in the same space.
+    bool FrustumMeshIntersect(const Frustum& fr,
+                              float3* pos,
+                              uint32_t posCount,
+                              uint32_t* indices,
+                              uint32_t indicesCount)
+    {
+
+        if(posCount == 0) return false;
+        uint32_t LastTri = indicesCount -3;
         Triangle tri;
 
         uint32_t i = 0;
@@ -1004,15 +1005,15 @@ namespace LvEdEngine
             assert(indices[i] < posCount);
             assert(indices[i+1] < posCount);
             assert(indices[i+2] < posCount);
-           
+
             tri.A = pos[indices[i]];
             tri.B = pos[indices[i+1]];
             tri.C = pos[indices[i+2]];
             if(FrustumTriangleIntersect(fr, tri))
-            {                
-                return true;               
+            {
+                return true;
             }
-        }          
+        }
         return false;
     }
 
